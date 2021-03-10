@@ -10,19 +10,57 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+
+  const user = users.find(user => user.username === username)
+
+  if(!user) return response.status(404).json({error: 'User account not found'})
+
+  request.user = user
+
+  return next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request
+
+  return !user.pro  && user.todos.length >= 10
+    ? response.status(403).json({error: 'Your free account has reached the limit of 10 tasks'})
+    : next()
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+  const { id } = request.params
+
+  const regexUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+  if(!regexUuid.test(id)) return response.status(400).json({error:'Id is not a valid uuid'})
+  
+  const user = users.find(user => user.username === username)
+
+  if(!user) return response.status(404).json({error: 'User account not found'})
+
+  const todo = user.todos.find(todo => todo.id === id)
+
+  if(!todo) return response.status(404).json({error: 'This task does not belong to the user'})
+
+  request.todo = todo
+  request.user = user
+
+  return next()
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params
+
+  const user = users.find(user => user.id === id)
+
+  if(!user) return response.status(404).json({error: 'User account not found'})
+
+  request.user = user
+
+  return next()
 }
 
 app.post('/users', (request, response) => {
