@@ -66,10 +66,6 @@ app.post('/users', (request, response) => {
 
   const usernameAlreadyExists = users.some((user) => user.username === username);
 
-  if (usernameAlreadyExists) {
-    return response.status(400).json({ error: 'Username already exists' });
-  }
-
   const user = {
     id: uuidv4(),
     name,
@@ -78,9 +74,11 @@ app.post('/users', (request, response) => {
     todos: []
   };
 
-  users.push(user);
+  users.push(user)
 
-  return response.status(201).json(user);
+  return usernameAlreadyExists
+    ? response.status(400).json({ error: 'Username already exists' })
+    : response.status(201).json(user);
 });
 
 app.get('/users/:id', findUserById, (request, response) => {
